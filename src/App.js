@@ -9,7 +9,7 @@ import './App.css';
 
 
 const app_style = {
-  backgroundColor: "black",
+  backgroundColor: "hsla(200,100%,50%,1.0)",
   fontColor: "white",
   position:"absolute",
   width:"100%",
