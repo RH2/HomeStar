@@ -33,8 +33,19 @@ class A2 extends Component {
       //wireframe: true,
       map: loader_texture.load('/model/fighter_textures/fighter_Material.001_BaseColor.png'),
     });
+    var  mothershipMat = new THREE.MeshStandardMaterial({
+      ambientLight:0.1,
+      color: 0x2222FF,
+      emissive: 0xFFFFFF,
+      emissiveIntensity: 2,
+      //wireframe: true,
+      map: loader_texture.load('/model/mothership_textures/mothership_Mothership2048_BaseColor.png'),
+      emissiveMap: loader_texture.load('/model/mothership_textures/mothership_Mothership2048_Emissive.png')
+    });
+
 
     //geometry and material factory
+    //FIGHTER ART
     const loader_obj = new OBJLoader()
     var fighter_model
     loader_obj.load(
@@ -49,7 +60,26 @@ class A2 extends Component {
          object.scale.y = 0.5;
          object.scale.z = 0.5;
          fighter_model = object
-         new THREE.Vector3(0.1,0.1,0.1);scene.add(object); console.log(object)}
+         scene.add(object);
+        console.log(object)}
+    )
+
+    var mother_model
+    loader_obj.load(
+      "model/mothership.obj",
+      function(object){//on load
+        object.traverse( function( child ) {
+            if ( child instanceof THREE.Mesh ) {
+                child.material = mothershipMat;
+            }
+        } );
+        object.scale.x = 0.5;
+        object.scale.y = 0.5;
+        object.scale.z = 0.5;
+        object.position.z = -100
+        mother_model = object
+        scene.add(object);
+      }
     )
     //var model_mothership = loader_obj.load("model/fighter.obj")
 
@@ -63,11 +93,9 @@ class A2 extends Component {
 
     var animate = function() {
       requestAnimationFrame(animate);
-      if(fighter_model!=undefined){
-      fighter_model.rotation.x += 0.01;
-      fighter_model.rotation.y += 0.01;
-      fighter_model.rotation.z += 0.01;
-    }
+
+      if(fighter_model!=undefined){fighter_model.rotation.x += 0.01;fighter_model.rotation.y += 0.01;fighter_model.rotation.z += 0.01;}
+      if(mother_model!=undefined){mother_model.rotation.x += 0.001;mother_model.rotation.y += 0.001;mother_model.rotation.z += 0.001;}
 
       renderer.render(scene, camera);
     };
