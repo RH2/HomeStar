@@ -33,7 +33,7 @@ class A2 extends Component {
 
 
 
-    //geometry and material factory line 36-110
+    //TOC geometry and material factory line 36-110
     //FIGHTER ART
     var loader_texture = new TextureLoader
     const loader_obj = new OBJLoader()
@@ -52,7 +52,7 @@ class A2 extends Component {
       map: loader_texture.load('/model/mothership_textures/mothership_Mothership2048_BaseColor.png'),
       emissiveMap: loader_texture.load('/model/mothership_textures/mothership_Mothership2048_Emissive.png')
     });
-    var fighter_model
+    var fighter_model= 2
     loader_obj.load(
       "model/fighter.obj",
       function(object){//on load
@@ -88,8 +88,41 @@ class A2 extends Component {
     //var model_mothership = loader_obj.load("model/fighter.obj")
 
     function gen_unit_fighter(location){
+      loader_obj.load(
+        "model/fighter.obj",
+        function(object){//on load
+          object.traverse( function( child ) {
+              if ( child instanceof THREE.Mesh ) {
+                  child.material = fighterMat;
+              }
+          } )
+           object.scale.x = 0.5;
+           object.scale.y = 0.5;
+           object.scale.z = 0.5;
+           object.health = 1200
+           object.destination = new THREE.Vector3()
+           object.velocity = 0
+           object.maxThrust = 1
+           object.team = 1
+           object.select = false
+           object.position.x = location.x
+           object.position.y = location.y
+           object.position.z = location.z
+           object.name = "FIGHTER"
+           scene.add(object)
+      })
+
+
+      //let unit = fighter_model.clone()
+
+    }
+
+    function gen_unit_mothership(location){
       let unit = fighter_model.clone()
-      unit.health = 1200
+      unit.position.x = location.x
+      unit.position.y = location.y
+      unit.position.z = location.z
+      unit.health = 120000
       unit.destination = new THREE.Vector3()
       unit.velocity = 0
       unit.maxThrust = 0.1
@@ -98,16 +131,26 @@ class A2 extends Component {
       return(unit)
     }
 
-    function gen_unit_mothership(location){
-      let unit = fighter_model.clone()
-      unit.health = 1200
-      unit.destination = new THREE.Vector3()
-      unit.velocity = 0
-      unit.maxThrust = 0.1
-      unit.team = 1
-      unit.select = false
-      return(unit)
+    function gen_squadron(x,y,spreadx,spready,vec3){
+      for (var i = 0; i < x*y; i++) {
+        let difx = spreadx/x
+        let dify = spready/y
+        let midx = spreadx/2
+        let midy = spready/2
+
+        let vector = new THREE.Vector3(
+          (vec3.x-midx)+(parseInt(i%x)*difx),
+          (vec3.y-midy)+(parseInt(i/x)*dify),
+          vec3.z)
+        gen_unit_fighter(vector)
+        console.log("progress",scene)
+      }
     }
+
+
+    gen_squadron(5,5,20,20,new THREE.Vector3(4,4,4))
+
+
 
 
 
@@ -119,7 +162,6 @@ class A2 extends Component {
 
     var animate = function() {
       requestAnimationFrame(animate);
-
       // if(fighter_model!=undefined){fighter_model.rotation.x += 0.01;fighter_model.rotation.y += 0.01;fighter_model.rotation.z += 0.01;}
       // if(mother_model!=undefined){mother_model.rotation.x += 0.001;mother_model.rotation.y += 0.001;mother_model.rotation.z += 0.001;}
 
