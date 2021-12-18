@@ -87,6 +87,15 @@ class A2 extends Component {
     )
     //var model_mothership = loader_obj.load("model/fighter.obj")
 
+
+    var texture_sprite_square = new THREE.TextureLoader().load('/sprites/box3.png')
+    var material = new THREE.SpriteMaterial( {map: texture_sprite_square, sizeAttenuation:false})
+    var sprite = new THREE.Sprite(material)
+    sprite.scale.set(.1,.1, 1)
+    sprite.sizeAttenuation = false
+    scene.add(sprite)
+
+
     function gen_unit_fighter(location){
       loader_obj.load(
         "model/fighter.obj",
@@ -149,6 +158,10 @@ class A2 extends Component {
 
 
     gen_squadron(5,5,20,20,new THREE.Vector3(4,4,4))
+
+
+
+
 
 
 
