@@ -27,7 +27,7 @@ function gen_interface_movement(){
       acceleration: 0.5,
       velocity: 0.0,
       randomness: 0.0, //evasive action, makes overall movement slower because there is more random walk.
-      ui: <div></div>, //div to display on unit readout
+      ui: <div>This unit can <b>move!</b> Current position: {this.position} MaxAcceleration: {this.acceleration}</div>, //div to display on unit readout
       update: function(){
         //draw line from current location to destination
         //1.create line, 2.replace existing line.
@@ -39,6 +39,15 @@ function gen_interface_movement(){
 
 }
 function interface_health(){
+  return(
+    {
+      interfaceName: "health",
+      health: 100,
+      maxhealth: 100,
+      shield: 100,
+      maxshield: 100,
+    }
+  )
 
 }
 function interface_ai(){
