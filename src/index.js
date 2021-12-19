@@ -10,6 +10,47 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 //import texture_fighter_diffuse from "./model/fighter_textures/fighter_Material.001_BaseColor.png"
 
+//an interface has standards:
+//standard ui display with actions that can be dictated.
+//standard update (called from animation)
+//standard
+
+function gen_interface_movement(){
+  //movement input
+  //movement update
+  return(
+    {
+      interfaceName: "movement",
+      position: new THREE.Vector3(),
+      destination: new THREE.Vector3(),
+      lookat: new THREE.Vector3(),
+      acceleration: 0.5,
+      velocity: 0.0,
+      randomness: 0.0, //evasive action, makes overall movement slower because there is more random walk.
+      ui: <div></div>, //div to display on unit readout
+      update: function(){
+        //draw line from current location to destination
+        //1.create line, 2.replace existing line.
+        //highlight destination
+      },
+
+    }
+  )
+
+}
+function interface_health(){
+
+}
+function interface_ai(){
+
+}
+
+//when a group is selected, the user might want to create formations (wall, sphere, pyramid, cubic, line, )
+function interface_group(){
+
+}
+
+
 class A2 extends Component {
   componentDidMount() {
     var scene = new THREE.Scene( );
@@ -70,7 +111,7 @@ class A2 extends Component {
     )
     var mother_model
     loader_obj.load(
-      "model/mothership.obj",
+      "model/mothership2.obj",
       function(object){//on load
         object.traverse( function( child ) {
             if ( child instanceof THREE.Mesh ) {
@@ -94,6 +135,8 @@ class A2 extends Component {
     sprite.scale.set(.1,.1, 1)
     sprite.sizeAttenuation = false
     scene.add(sprite)
+
+
 
 
     function gen_unit_fighter(location){
@@ -185,7 +228,10 @@ class A2 extends Component {
   render() {
     return(
       <div>
-        <div id="UI" style={style_ui}>THIS IS THE UI!</div>
+        <div id="unit_display" style={style_unit}> — UNIT DISPLAY</div>
+        <div id="UI" style={style_ui}>
+          THIS IS THE UI!
+          </div>
         <div ref={ref => (this.mount = ref)}></div>
       </div>
     )
@@ -197,8 +243,27 @@ const style_ui = {
   position:"absolute",
   top: "0px",
   left: "0px",
+  width: "auto",
+  height: "auto",
   zIndex:"10",
   padding: "2em",
+  overflow: "hidden",
+}
+const style_unit = {
+  backgroundColor: "hsla(200,100%,50%,0.1)",
+  color:"hsla(200, 100%, 100%, 1.0)",
+  border:"solid",
+  borderColor: "hsla(200, 100%, 50%, 0.5)",
+  userSelect: "none",
+  mozUserSelect:"none",
+  webkitUserSelect:"none",
+  fontFamily: "Roboto",
+  position:"absolute",
+  top: "2em",
+  right: "2em",
+  width:"20em",
+  zIndex:"10",
+  padding: "1em",
 }
 const rootElement = document.getElementById("root");
 ReactDOM.render(<A2 />, rootElement);
