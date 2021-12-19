@@ -15,7 +15,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 //standard update (called from animation)
 //standard
 
-function gen_interface_movement(){
+function interface_movement(){
   //movement input
   //movement update
   return(
@@ -26,8 +26,9 @@ function gen_interface_movement(){
       lookat: new THREE.Vector3(),
       acceleration: 0.5,
       velocity: 0.0,
+      rot_velocity: Math.PI/180*16, //rotational velocity per second. 16deg/second
       randomness: 0.0, //evasive action, makes overall movement slower because there is more random walk.
-      ui: <div>This unit can <b>move!</b> Current position: {this.position} MaxAcceleration: {this.acceleration}</div>, //div to display on unit readout
+      ui: <div>This unit can <b>move!</b> Current position: this.position MaxAcceleration: this.acceleration</div>, //div to display on unit readout
       update: function(){
         //draw line from current location to destination
         //1.create line, 2.replace existing line.
@@ -38,15 +39,27 @@ function gen_interface_movement(){
   )
 
 }
+
+
+
 function interface_health(){
+  let object = {}
+    object.interfaceName= "health"
+    object.health= 50
+    object.maxhealth= 50
+    object.shield= 50
+    object.maxshield= 50
+    object.shieldRegen= 0.1 //per second
+    object.update= function(){}
+    object.setHealth= function(x){object.health=x;object.update();}
+    object.ui=
+      <div>
+        HealthGraph
+        <div>shield {object.shield}/{object.maxshield}</div>
+        <div>health {object.health}/{object.maxhealth}</div>
+      </div>
   return(
-    {
-      interfaceName: "health",
-      health: 100,
-      maxhealth: 100,
-      shield: 100,
-      maxshield: 100,
-    }
+    object
   )
 
 }
@@ -62,6 +75,11 @@ function interface_group(){
 
 class A2 extends Component {
   componentDidMount() {
+
+
+    document.test_health = interface_health()
+    ReactDOM.render(document.test_health.ui, document.getElementById('unit_display')); //give user instructions.
+
     var scene = new THREE.Scene( );
     scene.background = new THREE.Color( 0x000000 );
     scene.add(new THREE.AxesHelper(5))
