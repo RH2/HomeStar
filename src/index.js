@@ -16,53 +16,44 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 //standard
 
 function interface_movement(){
-  //movement input
-  //movement update
-  return(
-    {
-      interfaceName: "movement",
-      position: new THREE.Vector3(),
-      destination: new THREE.Vector3(),
-      lookat: new THREE.Vector3(),
-      acceleration: 0.5,
-      velocity: 0.0,
-      rot_velocity: Math.PI/180*16, //rotational velocity per second. 16deg/second
-      randomness: 0.0, //evasive action, makes overall movement slower because there is more random walk.
-      ui: <div>This unit can <b>move!</b> Current position: this.position MaxAcceleration: this.acceleration</div>, //div to display on unit readout
-      update: function(){
-        //draw line from current location to destination
-        //1.create line, 2.replace existing line.
-        //highlight destination
-      },
-
-    }
-  )
-
+  let object = {}
+  object.interfaceName= "movement"
+  object.position= new THREE.Vector3()
+  object.destination= new THREE.Vector3()
+  object.lookat= new THREE.Vector3()
+  object.acceleration= 0.5
+  object.velocity= 0.0
+  object.rot_velocity= Math.PI/180*16 //rotational velocity per second. 16deg/second
+  object.randomness= 0.0 //evasive action makes overall movement slower because there is more random walk.
+  object.ui= <div>This unit can <b>move!</b> Current position: this.position MaxAcceleration: this.acceleration</div> //div to display on unit readout
+  object.update= function(){
+    //draw line from current location to destination
+    //1.create line, 2.replace existing line.
+    //highlight destination
+  }
+  return object
 }
-
 
 
 function interface_health(){
   let object = {}
-    object.interfaceName= "health"
-    object.health= 50
-    object.maxhealth= 50
-    object.shield= 50
-    object.maxshield= 50
-    object.shieldRegen= 0.1 //per second
-    object.update= function(){}
-    object.setHealth= function(x){object.health=x;object.update();}
-    object.ui=
-      <div>
-        HealthGraph
-        <div>shield {object.shield}/{object.maxshield}</div>
-        <div>health {object.health}/{object.maxhealth}</div>
-      </div>
-  return(
-    object
-  )
-
+  object.interfaceName= "health"
+  object.health= 50
+  object.maxhealth= 50
+  object.shield= 50
+  object.maxshield= 50
+  object.shieldRegen= 0.1 //per second
+  object.update= function(){}
+  object.setHealth= function(x){object.health=x;object.update();}
+  object.ui=
+    <div>
+      HealthGraph
+      <div>shield {object.shield}/{object.maxshield}</div>
+      <div>health {object.health}/{object.maxhealth}</div>
+    </div>
+  return object
 }
+
 function interface_ai(){
 
 }
@@ -73,13 +64,24 @@ function interface_group(){
 }
 
 
+
+
+//UTILITY
+
+
+
+
+
+
 class A2 extends Component {
   componentDidMount() {
 
-
+    //test to see if health object can draw to DOM
     document.test_health = interface_health()
     ReactDOM.render(document.test_health.ui, document.getElementById('unit_display')); //give user instructions.
 
+
+    //BASIC SETUP
     var scene = new THREE.Scene( );
     scene.background = new THREE.Color( 0x000000 );
     scene.add(new THREE.AxesHelper(5))
@@ -96,6 +98,45 @@ class A2 extends Component {
     const controls = new OrbitControls(camera, renderer.domElement)
       controls.enableDamping = false
     this.mount.appendChild(renderer.domElement);
+
+
+    //MOUSE DATA!
+    const screen_xy = {x:0,y:0,px:0,py:0}
+    function getCanvasRelativePosition(event) /*utility, get normalized {x,y}*/ {
+      var canvas = renderer.domElement
+      const rect = canvas.getBoundingClientRect();
+
+      return {
+        x: (event.clientX - rect.left) * canvas.width  / rect.width,
+        y: (event.clientY - rect.top ) * canvas.height / rect.height,
+      };
+    }
+    function set_screen_xy(event) {
+      const pos = getCanvasRelativePosition(event);
+      var canvas = renderer.domElement
+      screen_xy.px = pos.x
+      screen_xy.py = pos.y
+      screen_xy.x = (pos.x / canvas.width ) *  2 - 1;
+      screen_xy.y = (pos.y / canvas.height) * -2 + 1;  // note we flip Y
+
+    }
+    function clearPickPosition() {
+      screen_xy.x = -100000;
+      screen_xy.y = -100000;
+      screen_xy.px = -100;
+      screen_xy.py = -100;
+    }
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight
+        camera.updateProjectionMatrix()
+        renderer.setSize(window.innerWidth, window.innerHeight)
+        //render()
+    }
+
+    window.addEventListener('mousemove', set_screen_xy);
+    window.addEventListener('mouseout', clearPickPosition);
+    window.addEventListener('mouseleave', clearPickPosition);
+    window.addEventListener('resize', onWindowResize, false)
 
 
 
@@ -227,7 +268,7 @@ class A2 extends Component {
     }
 
 
-    gen_squadron(5,5,20,20,new THREE.Vector3(4,4,4))
+    //gen_squadron(5,5,20,20,new THREE.Vector3(4,4,4))
 
 
 
@@ -245,6 +286,12 @@ class A2 extends Component {
 
     var animate = function() {
       requestAnimationFrame(animate);
+      ReactDOM.render(
+        <div>
+          UI overlay:
+          <div  style={style_small_text}>mouse coordinates: {screen_xy.x},{screen_xy.y}</div>
+        </div>
+        , document.getElementById("UI"))
       // if(fighter_model!=undefined){fighter_model.rotation.x += 0.01;fighter_model.rotation.y += 0.01;fighter_model.rotation.z += 0.01;}
       // if(mother_model!=undefined){mother_model.rotation.x += 0.001;mother_model.rotation.y += 0.001;mother_model.rotation.z += 0.001;}
 
@@ -257,7 +304,7 @@ class A2 extends Component {
       <div>
         <div id="unit_display" style={style_unit}> — UNIT DISPLAY</div>
         <div id="UI" style={style_ui}>
-          THIS IS THE UI!
+          UI overlay
           </div>
         <div ref={ref => (this.mount = ref)}></div>
       </div>
@@ -267,22 +314,25 @@ class A2 extends Component {
 const style_ui = {
   color:"white",
   fontFamily: "Roboto",
+  fontSize: "3em",
+  fontWeight: "100",
   position:"absolute",
   top: "0px",
   left: "0px",
   width: "auto",
   height: "auto",
   zIndex:"10",
-  padding: "2em",
+  padding: "0.5em",
   overflow: "hidden",
 }
 const style_unit = {
   backgroundColor: "hsla(200,100%,50%,0.1)",
   color:"hsla(200, 100%, 100%, 1.0)",
+  fontWeight: "100",
   border:"solid",
   borderColor: "hsla(200, 100%, 50%, 0.5)",
   userSelect: "none",
-  mozUserSelect:"none",
+  MozUserSelect:"none",
   webkitUserSelect:"none",
   fontFamily: "Roboto",
   position:"absolute",
@@ -291,6 +341,11 @@ const style_unit = {
   width:"20em",
   zIndex:"10",
   padding: "1em",
+}
+const style_small_text= {
+  fontWeight: "500",
+  fontSize: "0.4em"
+
 }
 const rootElement = document.getElementById("root");
 ReactDOM.render(<A2 />, rootElement);
