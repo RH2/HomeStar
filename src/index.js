@@ -7,6 +7,7 @@ import * as THREE from "three"
 import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader"
 import { TextureLoader } from 'three/src/loaders/TextureLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import TWEEN from '@tweenjs/tween.js'
 
 //import texture_fighter_diffuse from "./model/fighter_textures/fighter_Material.001_BaseColor.png"
 
@@ -19,7 +20,7 @@ function interface_movement(){
   let object = {}
   object.interfaceName= "movement"
   object.position= new THREE.Vector3()
-  object.destination= new THREE.Vector3()
+  object.destination= [new THREE.Vector3()]
   object.lookat= new THREE.Vector3()
   object.acceleration= 0.5
   object.velocity= 0.0
@@ -192,6 +193,8 @@ class A2 extends Component {
         object.position.z = -100
         mother_model = object
         scene.add(object);
+        var t = new TWEEN.Tween( object.position ).to( new THREE.Vector3(200,0,0), 10000 )
+        t.start();
       }
     )
     //var model_mothership = loader_obj.load("model/fighter.obj")
@@ -284,8 +287,13 @@ class A2 extends Component {
     var cube = new THREE.Mesh(geometry, material);
     //scene.add(cube);
 
-    var animate = function() {
+
+    var clock = new THREE.Clock();
+    clock.start()
+    var animate = function(time) {
+      let delta = clock.getDelta();
       requestAnimationFrame(animate);
+      TWEEN.update(time)
       ReactDOM.render(
         <div>
           UI overlay:
