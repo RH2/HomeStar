@@ -8,6 +8,9 @@ import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader"
 import { TextureLoader } from 'three/src/loaders/TextureLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import TWEEN from '@tweenjs/tween.js'
+import SHADE from './shades'
+
+console.log(SHADE)
 
 //import texture_fighter_diffuse from "./model/fighter_textures/fighter_Material.001_BaseColor.png"
 
@@ -194,7 +197,10 @@ class A2 extends Component {
         mother_model = object
         scene.add(object);
         var t = new TWEEN.Tween( object.position ).to( new THREE.Vector3(200,0,0), 10000 )
+        var t2 = new TWEEN.Tween( object.rotation ).to({ y: -Math.PI/2, z: Math.PI}, 10000)
         t.start();
+        t.easing(TWEEN.Easing.Quadratic.In)
+        t2.start()
       }
     )
     //var model_mothership = loader_obj.load("model/fighter.obj")
