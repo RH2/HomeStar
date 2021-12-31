@@ -37,8 +37,6 @@ function interface_movement(){
   }
   return object
 }
-
-
 function interface_health(){
   let object = {}
   object.interfaceName= "health"
@@ -57,11 +55,9 @@ function interface_health(){
     </div>
   return object
 }
-
 function interface_ai(){
 
 }
-
 //when a group is selected, the user might want to create formations (wall, sphere, pyramid, cubic, line, )
 function interface_group(){
 
@@ -104,6 +100,86 @@ class A2 extends Component {
     this.mount.appendChild(renderer.domElement);
 
 
+
+    var circleArray = []
+    for (var i = 0; i < 31; i++) {
+      let radius = 3.2
+      circleArray.push( new THREE.Vector3(
+        radius*Math.cos(i/30 * Math.PI*2),
+        0.0,
+        radius*Math.sin(i/30 * Math.PI*2)
+      )  )
+    }
+    for (var i = 0; i < 31; i++) {
+      let radius = 1
+      circleArray.push( new THREE.Vector3(
+        radius*Math.cos(i/30 * Math.PI*2),
+        0.0,
+        radius*Math.sin(i/30 * Math.PI*2)
+      )  )
+    }
+    for (var i = 0; i < 31; i++) {
+      let radius = .02
+      circleArray.push( new THREE.Vector3(
+        radius*Math.cos(i/30 * Math.PI*2),
+        0.0,
+        radius*Math.sin(i/30 * Math.PI*2)
+      )  )
+    }
+    var space_xz_pointer = lineFromVec3array(circleArray,0x00FF00)
+
+
+    function pointcloudFromVec3array(vec3array,color){
+      let mat = new THREE.PointsMaterial({ color: color, size: 0.00025 })
+      let cloneArray = []
+      vec3array.forEach((item) => {
+        cloneArray.push(item.clone())
+      });
+
+      let debug_points_pc = new THREE.BufferGeometry().setFromPoints(cloneArray);
+      let debug_point_obj = new THREE.Points(debug_points_pc, mat)
+      debug_point_obj.name = "debug_stuff"
+      //debug_point_obj.translateZ(0.001)
+      scene.add(debug_point_obj)
+    }
+    function lineFromVec3array(vec3array,color){
+      let mat = new THREE.LineBasicMaterial({ color: color, linewidth: 5 })
+      let cloneArray = []
+      vec3array.forEach((item) => {
+        cloneArray.push(item.clone())
+      });
+
+      let debug_points_pc = new THREE.BufferGeometry().setFromPoints(cloneArray);
+      let debug_point_obj = new THREE.Line(debug_points_pc, mat)
+      debug_point_obj.name = "debug_stuff"
+      //debug_point_obj.translateZ(0.001)
+      scene.add(debug_point_obj)
+      return(debug_point_obj)
+    }
+    function IntersectLines( P, r, Q, s ) {
+    // http://walter.bislins.ch
+    // line1 = P + lambda1 * r
+    // line2 = Q + lambda2 * s
+    // r and s must be normalized (length = 1)
+    // returns intersection point O of line1 with line2 = [ Ox, Oy ]
+    // returns null if lines do not intersect or are identical
+    var PQx = Q[0] - P[0];
+    var PQy = Q[1] - P[1];
+    var rx = r[0];
+    var ry = r[1];
+    var rxt = -ry;
+    var ryt = rx;
+    var qx = PQx * rx + PQy * ry;
+    var qy = PQx * rxt + PQy * ryt;
+    var sx = s[0] * rx + s[1] * ry;
+    var sy = s[0] * rxt + s[1] * ryt;
+    // if lines are identical or do not cross...
+    if (sy == 0) return null;
+    var a = qx - qy * sx / sy;
+    return [ P[0] + a * rx, P[1] + a * ry ];
+    }
+
+
     //MOUSE DATA!
     const screen_xy = {x:0,y:0,px:0,py:0}
     function getCanvasRelativePosition(event) /*utility, get normalized {x,y}*/ {
@@ -122,6 +198,41 @@ class A2 extends Component {
       screen_xy.py = pos.y
       screen_xy.x = (pos.x / canvas.width ) *  2 - 1;
       screen_xy.y = (pos.y / canvas.height) * -2 + 1;  // note we flip Y
+
+      let xz = new THREE.Vector3( screen_xy.x,screen_xy.y,1.0 )
+      /*
+      xz.unproject(camera)
+      xz.sub(camera.position)
+      //var distance = -camera.clone().position.y / xz.y;
+      //xz.add( xz.clone().multiplyScalar(distance))
+      space_xz_pointer.position.x = xz.x
+      space_xz_pointer.position.y = xz.y
+      space_xz_pointer.position.z = xz.z
+      console.log(space_xz_pointer.position)
+      */
+      let ray = new THREE.Ray();
+      //ray.origin = camera.position.clone()
+      //ray.direction = xz.unproject(camera).sub(camera.position.clone()).normalize()
+      ray.origin.setFromMatrixPosition(camera.matrixWorld);
+      ray.direction = xz.unproject(camera).sub(ray.origin).normalize();
+      let xzplane= new THREE.Plane()
+       xzplane.setFromNormalAndCoplanarPoint( new THREE.Vector3(0,1,0),  new THREE.Vector3(0,0,0));
+      //intplane.coplanarPoint(new THREE.Vector3(0,0,0) )
+
+
+      //ray.origin.setFromMatrixPosition(camera.matrixWorld);
+      //ray.direction.set(xz, -0.25, 1).unproject(camera).sub(ray.origin).normalize();
+      let xzvec = new THREE.Vector3()
+      ray.intersectPlane(xzplane,xzvec)
+      space_xz_pointer.position.x = xzvec.x
+      space_xz_pointer.position.y = xzvec.y
+      space_xz_pointer.position.z = xzvec.z
+
+
+
+
+
+
 
     }
     function clearPickPosition() {
@@ -203,81 +314,83 @@ class A2 extends Component {
         t2.start()
       }
     )
-    //var model_mothership = loader_obj.load("model/fighter.obj")
+    var model_mothership = loader_obj.load("model/fighter.obj")
 
 
-    var texture_sprite_square = new THREE.TextureLoader().load('/sprites/box3.png')
-    var material = new THREE.SpriteMaterial( {map: texture_sprite_square, sizeAttenuation:false})
-    var sprite = new THREE.Sprite(material)
-    sprite.scale.set(.1,.1, 1)
-    sprite.sizeAttenuation = false
-    scene.add(sprite)
+    // var texture_sprite_square = new THREE.TextureLoader().load('/sprites/box3.png')
+    // var material = new THREE.SpriteMaterial( {map: texture_sprite_square, sizeAttenuation:false})
+    // var sprite = new THREE.Sprite(material)
+    // sprite.scale.set(.1,.1, 1)
+    // sprite.sizeAttenuation = false
+    // scene.add(sprite)
 
 
 
 
-    function gen_unit_fighter(location){
-      loader_obj.load(
-        "model/fighter.obj",
-        function(object){//on load
-          object.traverse( function( child ) {
-              if ( child instanceof THREE.Mesh ) {
-                  child.material = fighterMat;
-              }
-          } )
-           object.scale.x = 0.5;
-           object.scale.y = 0.5;
-           object.scale.z = 0.5;
-           object.health = 1200
-           object.destination = new THREE.Vector3()
-           object.velocity = 0
-           object.maxThrust = 1
-           object.team = 1
-           object.select = false
-           object.position.x = location.x
-           object.position.y = location.y
-           object.position.z = location.z
-           object.name = "FIGHTER"
-           scene.add(object)
-      })
-
-
-      //let unit = fighter_model.clone()
-
-    }
-
-    function gen_unit_mothership(location){
-      let unit = fighter_model.clone()
-      unit.position.x = location.x
-      unit.position.y = location.y
-      unit.position.z = location.z
-      unit.health = 120000
-      unit.destination = new THREE.Vector3()
-      unit.velocity = 0
-      unit.maxThrust = 0.1
-      unit.team = 1
-      unit.select = false
-      return(unit)
-    }
-
-    function gen_squadron(x,y,spreadx,spready,vec3){
-      for (var i = 0; i < x*y; i++) {
-        let difx = spreadx/x
-        let dify = spready/y
-        let midx = spreadx/2
-        let midy = spready/2
-
-        let vector = new THREE.Vector3(
-          (vec3.x-midx)+(parseInt(i%x)*difx),
-          (vec3.y-midy)+(parseInt(i/x)*dify),
-          vec3.z)
-        gen_unit_fighter(vector)
-        console.log("progress",scene)
-      }
-    }
+    // function gen_unit_fighter(location){
+    //   loader_obj.load(
+    //     "model/fighter.obj",
+    //     function(object){//on load
+    //       object.traverse( function( child ) {
+    //           if ( child instanceof THREE.Mesh ) {
+    //               child.material = fighterMat;
+    //           }
+    //       } )
+    //        object.scale.x = 0.5;
+    //        object.scale.y = 0.5;
+    //        object.scale.z = 0.5;
+    //        object.health = 1200
+    //        object.destination = new THREE.Vector3()
+    //        object.velocity = 0
+    //        object.maxThrust = 1
+    //        object.team = 1
+    //        object.select = false
+    //        object.position.x = location.x
+    //        object.position.y = location.y
+    //        object.position.z = location.z
+    //        object.name = "FIGHTER"
+    //        scene.add(object)
+    //   })
+    //
+    //
+    //   //let unit = fighter_model.clone()
+    //
+    // }
+    // function gen_unit_mothership(location){
+    //   let unit = fighter_model.clone()
+    //   unit.position.x = location.x
+    //   unit.position.y = location.y
+    //   unit.position.z = location.z
+    //   unit.health = 120000
+    //   unit.destination = new THREE.Vector3()
+    //   unit.velocity = 0
+    //   unit.maxThrust = 0.1
+    //   unit.team = 1
+    //   unit.select = false
+    //   return(unit)
+    // }
+    // function gen_squadron(x,y,spreadx,spready,vec3){
+    //   for (var i = 0; i < x*y; i++) {
+    //     let difx = spreadx/x
+    //     let dify = spready/y
+    //     let midx = spreadx/2
+    //     let midy = spready/2
+    //
+    //     let vector = new THREE.Vector3(
+    //       (vec3.x-midx)+(parseInt(i%x)*difx),
+    //       (vec3.y-midy)+(parseInt(i/x)*dify),
+    //       vec3.z)
+    //     gen_unit_fighter(vector)
+    //     console.log("progress",scene)
+    //   }
+    // }
 
 
     //gen_squadron(5,5,20,20,new THREE.Vector3(4,4,4))
+
+
+
+
 
 
 
