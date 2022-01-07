@@ -94,13 +94,91 @@ class A2 extends Component {
       1000
     ); camera.position.z = 5;
     var renderer = new THREE.WebGLRenderer();
+    renderer.antialias =true
     renderer.setSize(window.innerWidth, window.innerHeight);
     const controls = new OrbitControls(camera, renderer.domElement)
       controls.enableDamping = false
     this.mount.appendChild(renderer.domElement);
 
 
+    let key_control = false
+    let key_shift = false
+    let key_alt = false
+    document.addEventListener('keydown', updateUI_modkeys_press)
+    document.addEventListener('keyup', updateUI_modkeys_release)
+    function updateUI_modkeys_press(e){
+      if(e.key=="Control"){
+        key_control=true
+        controls.enablePan= !key_control
+        controls.enableRotate= !key_control
+      }
+      if(e.key=="Alt"){
+        key_alt=true
+      }
+      if(e.key=="Shift"){
+        key_shift=true
+      }
+      //console.log(key_control,key_shift,key_alt)
+    }
+    function updateUI_modkeys_release(e){
+      if(e.key=="Control"){
+        key_control=false
+        controls.enablePan= !key_control
+        controls.enableRotate= !key_control
+      }
+      if(e.key=="Alt"){
+        key_alt=false
+      }
+      if(e.key=="Shift"){
+        key_shift=false
+      }
+      //console.log(key_control,key_shift,key_alt)
+    }
+    document.addEventListener('keypress', logkey)
 
+    document.addEventListener("mouseup",logkey)
+    function logkey(e){
+      console.log(e)
+      // if(e.key=="Control"){
+      //   controls.enablePan=false
+      //   controls.enableRotate=false
+      // }
+    }
+    //KEY STATES
+    //KEY COMMANDS
+    function user_freeze_view_orbit(){
+      //when the user holds ctrl, the orbitcontrols freeze
+      controls.enablePan= !key_control
+      controls.enableRotate= !key_control
+    }
+    function user_move_unit(){
+      //when the user ctrl-right click, the selected unit moves to that location.
+    }
+    function user_direct_attack(){
+      //when the user ctrl-left clicks unit of another team, selected unit will attack it.
+    }
+    function user_select_unit(){
+      //in this function we have received a ctrl-left click
+    }
+    function user_pan(){
+      //in this function we set orbitcontrols pivot x,y,z
+    }
+    function user_focus_unit(bReference){
+      //hit f to center scene view to object
+      //hit ctrl-f to center scene view to object by reference
+      //if by reference, the view will orbit unit.
+    }
+    function user_unfocus(){
+      //camera will copy current xyz
+    }
+    function user_overview(){
+      //camera will interpolate to view in the sky
+    }
+
+
+
+
+    //3d widget
     var circleArray = []
     for (var i = 0; i < 31; i++) {
       let radius = 3.2
@@ -110,23 +188,17 @@ class A2 extends Component {
         radius*Math.sin(i/30 * Math.PI*2)
       )  )
     }
-    for (var i = 0; i < 31; i++) {
-      let radius = 1
-      circleArray.push( new THREE.Vector3(
-        radius*Math.cos(i/30 * Math.PI*2),
-        0.0,
-        radius*Math.sin(i/30 * Math.PI*2)
-      )  )
-    }
-    for (var i = 0; i < 31; i++) {
-      let radius = .02
-      circleArray.push( new THREE.Vector3(
-        radius*Math.cos(i/30 * Math.PI*2),
-        0.0,
-        radius*Math.sin(i/30 * Math.PI*2)
-      )  )
-    }
     var space_xz_pointer = lineFromVec3array(circleArray,0x00FF00)
+    circleArray = []
+    for (var i = 0; i < 31; i++) {
+      let radius = 2.5
+      circleArray.push( new THREE.Vector3(
+        radius*Math.cos(i/30 * Math.PI*2),
+        0.0,
+        radius*Math.sin(i/30 * Math.PI*2)
+      )  )
+    }
+    var space_y_pointer = lineFromVec3array(circleArray,0x00FFFF)
 
 
     function pointcloudFromVec3array(vec3array,color){
@@ -200,33 +272,17 @@ class A2 extends Component {
       screen_xy.y = (pos.y / canvas.height) * -2 + 1;  // note we flip Y
 
       let xz = new THREE.Vector3( screen_xy.x,screen_xy.y,1.0 )
-      /*
-      xz.unproject(camera)
-      xz.sub(camera.position)
-      //var distance = -camera.clone().position.y / xz.y;
-      //xz.add( xz.clone().multiplyScalar(distance))
-      space_xz_pointer.position.x = xz.x
-      space_xz_pointer.position.y = xz.y
-      space_xz_pointer.position.z = xz.z
-      console.log(space_xz_pointer.position)
-      */
       let ray = new THREE.Ray();
-      //ray.origin = camera.position.clone()
-      //ray.direction = xz.unproject(camera).sub(camera.position.clone()).normalize()
       ray.origin.setFromMatrixPosition(camera.matrixWorld);
       ray.direction = xz.unproject(camera).sub(ray.origin).normalize();
       let xzplane= new THREE.Plane()
        xzplane.setFromNormalAndCoplanarPoint( new THREE.Vector3(0,1,0),  new THREE.Vector3(0,0,0));
-      //intplane.coplanarPoint(new THREE.Vector3(0,0,0) )
-
-
-      //ray.origin.setFromMatrixPosition(camera.matrixWorld);
-      //ray.direction.set(xz, -0.25, 1).unproject(camera).sub(ray.origin).normalize();
       let xzvec = new THREE.Vector3()
       ray.intersectPlane(xzplane,xzvec)
       space_xz_pointer.position.x = xzvec.x
-      space_xz_pointer.position.y = xzvec.y
       space_xz_pointer.position.z = xzvec.z
+      space_y_pointer.position.x = xzvec.x
+      space_y_pointer.position.z = xzvec.z
 
 
 
