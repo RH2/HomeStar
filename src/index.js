@@ -121,6 +121,7 @@ class A2 extends Component {
       //console.log(key_control,key_shift,key_alt)
     }
     function updateUI_modkeys_release(e){
+      console.log(e)
       if(e.key=="Control"){
         key_control=false
         controls.enablePan= !key_control
@@ -139,6 +140,13 @@ class A2 extends Component {
     document.addEventListener("mouseup",logkey)
     function logkey(e){
       console.log(e)
+      if(e.key==" "){
+        //space to issue move
+        if(fighter_model!=undefined){
+          let t = new TWEEN.Tween( fighter_model.position ).to( space_y_pointer.position.clone(), fighter_model.position.clone().distanceTo(space_y_pointer.position.clone())*50 )
+          t.start();
+        }
+      }
       // if(e.key=="Control"){
       //   controls.enablePan=false
       //   controls.enableRotate=false
@@ -146,11 +154,6 @@ class A2 extends Component {
     }
     //KEY STATES
     //KEY COMMANDS
-    function user_freeze_view_orbit(){
-      //when the user holds ctrl, the orbitcontrols freeze
-      controls.enablePan= !key_control
-      controls.enableRotate= !key_control
-    }
     function user_move_unit(){
       //when the user ctrl-right click, the selected unit moves to that location.
     }
@@ -332,7 +335,7 @@ class A2 extends Component {
       map: loader_texture.load('/model/mothership_textures/mothership_Mothership2048_BaseColor.png'),
       emissiveMap: loader_texture.load('/model/mothership_textures/mothership_Mothership2048_Emissive.png')
     });
-    var fighter_model= 2
+    var fighter_model
     loader_obj.load(
       "model/fighter.obj",
       function(object){//on load
@@ -345,6 +348,9 @@ class A2 extends Component {
          object.scale.y = 0.5;
          object.scale.z = 0.5;
          fighter_model = object
+         let tween_rotation = new TWEEN.Tween( object.rotation ).to({ z: Math.PI}, 100)
+         tween_rotation.repeat(Infinity)
+         tween_rotation.start()
          scene.add(object);
         console.log(object)}
     )
