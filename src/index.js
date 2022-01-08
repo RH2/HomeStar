@@ -104,6 +104,7 @@ class A2 extends Component {
     let key_control = false
     let key_shift = false
     let key_alt = false
+    let key_f = false
     document.addEventListener('keydown', updateUI_modkeys_press)
     document.addEventListener('keyup', updateUI_modkeys_release)
     function updateUI_modkeys_press(e){
@@ -143,9 +144,30 @@ class A2 extends Component {
       if(e.key==" "){
         //space to issue move
         if(fighter_model!=undefined){
-          let t = new TWEEN.Tween( fighter_model.position ).to( space_y_pointer.position.clone(), fighter_model.position.clone().distanceTo(space_y_pointer.position.clone())*50 )
+          let t = new TWEEN.Tween( fighter_model.position ).to( space_y_pointer.position.clone(), fighter_model.position.clone().distanceTo(space_y_pointer.position.clone())*100 )
+
+          let startRotation = fighter_model.quaternion.clone(); fighter_model.lookAt( space_y_pointer.position.clone() );
+          let endRotation = fighter_model.quaternion.clone();
+          fighter_model.slerpObj = {
+            startRotation: startRotation,
+            endRotation: endRotation,
+            interp:0.0,
+          }
+          let rin = new TWEEN.Tween( fighter_model.slerpObj )
+          rin.to( {interp:1} , 1200  )
+          rin.onUpdate(function() {
+            fighter_model.quaternion.copy(fighter_model.slerpObj.startRotation.slerp(fighter_model.slerpObj.endRotation,fighter_model.slerpObj.interp))
+          })
+          rin.start();
           t.start();
         }
+      }
+      if(e.key=="f"){
+        //focus the feel or ship
+        controls.target = fighter_model.position
+        //camera.position.x = fighter_model.position.x
+        camera.lookAt(fighter_model.position)
+
       }
       // if(e.key=="Control"){
       //   controls.enablePan=false
@@ -347,8 +369,25 @@ class A2 extends Component {
          object.scale.x = 0.5;
          object.scale.y = 0.5;
          object.scale.z = 0.5;
+
+
+         // let startRotation = object.quaternion.clone()
+         // let endRotation = object.quaternion.clone()
+         // let rotationProgress = 0
+         // let interpRotation = startRotation.slerp(endRotation,rotationProgress)
+         //
+         //
+         //
+         // object.startRotation = startRotation
+         // object.endRotation = endRotation
+         // object.rotationProgress = rotationProgress
+         // object.interpRotation = interpRotation
+         // fighter_model.quaternion = interpRotation
+
+
+
          fighter_model = object
-         let tween_rotation = new TWEEN.Tween( object.rotation ).to({ z: Math.PI}, 100)
+         let tween_rotation = new TWEEN.Tween( object.rotation ).to({ z: Math.PI*2}, 2000)
          tween_rotation.repeat(Infinity)
          tween_rotation.start()
          scene.add(object);
@@ -474,6 +513,7 @@ class A2 extends Component {
     var animate = function(time) {
       let delta = clock.getDelta();
       requestAnimationFrame(animate);
+      space_y_pointer.position.y = 5*Math.sin(clock.getElapsedTime()*2)
       TWEEN.update(time)
       ReactDOM.render(
         <div>
